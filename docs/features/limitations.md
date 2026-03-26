@@ -6,7 +6,7 @@ The GitHub **Contents** API and typical `git` sparse checkouts deal with **git b
 
 ## Submodules and symlinks
 
-Directory listings may include **submodules** or **symlinks**. ghcp **skips** submodule and symlink entries and logs a short verbose message when `--verbose` is set.
+Directory listings may include **submodules** or **symlinks**. gh-cp **skips** submodule and symlink entries and logs a short verbose message when `--verbose` is set.
 
 ## Rate limits
 
@@ -22,4 +22,4 @@ Sparse checkout behavior depends on a **recent Git** (roughly **2.25+**). Very o
 
 ## Windows paths
 
-Paths inside the repository use POSIX-style segments from GitHub; ghcp maps them with Node’s `path` for the local filesystem. Report issues if mixed path separators cause problems in unusual layouts.
+Paths inside the repository use POSIX-style segments from GitHub; gh-cp maps them with Node’s `path` for the local filesystem. Report issues if mixed path separators cause problems in unusual layouts.

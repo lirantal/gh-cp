@@ -10,7 +10,7 @@ function authHeaders (): Record<string, string> {
   const h: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': API_VERSION,
-    'User-Agent': 'ghcp-cli'
+    'User-Agent': 'gh-cp-cli'
   }
   if (token !== undefined && token.length > 0) {
     h.Authorization = `Bearer ${token}`

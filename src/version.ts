@@ -9,7 +9,7 @@ export function readCliVersion (): string {
       const pkgPath = join(dir, 'package.json')
       const raw = readFileSync(pkgPath, 'utf8')
       const pkg = JSON.parse(raw) as { name?: string; version?: string }
-      if (pkg.name === 'ghcp' && typeof pkg.version === 'string') {
+      if (pkg.name === 'gh-cp' && typeof pkg.version === 'string') {
         return pkg.version
       }
     } catch {

@@ -2,7 +2,7 @@
 
 <p align="center">
   <h1 align="center">
-    ghcp
+    gh-cp
   </h1>
 </p>
 
@@ -11,12 +11,12 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/ghcp"><img src="https://badgen.net/npm/v/ghcp" alt="npm version"/></a>
-  <a href="https://www.npmjs.com/package/ghcp"><img src="https://badgen.net/npm/license/ghcp" alt="license"/></a>
-  <a href="https://www.npmjs.com/package/ghcp"><img src="https://badgen.net/npm/dt/ghcp" alt="downloads"/></a>
-  <a href="https://github.com/lirantal/ghcp/actions?workflow=CI"><img src="https://github.com/lirantal/ghcp/workflows/CI/badge.svg" alt="build"/></a>
-  <a href="https://app.codecov.io/gh/lirantal/ghcp"><img src="https://badgen.net/codecov/c/github/lirantal/ghcp" alt="codecov"/></a>
-  <a href="https://snyk.io/test/github/lirantal/ghcp"><img src="https://snyk.io/test/github/lirantal/ghcp/badge.svg" alt="Known Vulnerabilities"/></a>
+  <a href="https://www.npmjs.com/package/gh-cp"><img src="https://badgen.net/npm/v/gh-cp" alt="npm version"/></a>
+  <a href="https://www.npmjs.com/package/gh-cp"><img src="https://badgen.net/npm/license/gh-cp" alt="license"/></a>
+  <a href="https://www.npmjs.com/package/gh-cp"><img src="https://badgen.net/npm/dt/gh-cp" alt="downloads"/></a>
+  <a href="https://github.com/lirantal/gh-cp/actions?workflow=CI"><img src="https://github.com/lirantal/gh-cp/workflows/CI/badge.svg" alt="build"/></a>
+  <a href="https://app.codecov.io/gh/lirantal/gh-cp"><img src="https://badgen.net/codecov/c/github/lirantal/gh-cp" alt="codecov"/></a>
+  <a href="https://snyk.io/test/github/lirantal/gh-cp"><img src="https://snyk.io/test/github/lirantal/gh-cp/badge.svg" alt="Known Vulnerabilities"/></a>
   <a href="./SECURITY.md"><img src="https://img.shields.io/badge/Security-Responsible%20Disclosure-yellow.svg" alt="Responsible Disclosure Policy" /></a>
 </p>
 
@@ -26,10 +26,10 @@ Execute with `npx` Node.js package manager quick package executable and copy ove
 repository to the local directory
 
 ```sh
-npx ghcp user/repo/.github/workflows .
+npx gh-cp user/repo/.github/workflows .
 ```
 
-Note: you can also execute with `pnpm` via: `pnpm dlx ghcp `
+Note: you can also execute with `pnpm` via: `pnpm dlx gh-cp `
 
 ## Install
 
@@ -37,10 +37,10 @@ Install globally with `pnpm` or with `npm`:
 
 ```sh
 # install with pnpm globally
-pnpm add -g ghcp
+pnpm add -g gh-cp
 
 # or install with npm globally
-npm install -g ghcp
+npm install -g gh-cp
 ```
 
 **Requirements:** Node.js **24+**. Optional but recommended: [GitHub CLI](https://cli.github.com/) (`gh`) and/or `git` on your `PATH` for auth and fewer HTTPS rate limits.
@@ -49,14 +49,14 @@ npm install -g ghcp
 
 ```sh
 # Copy a repo subtree into the current directory (like cp -r repo/.devcontainer .)
-npx ghcp lirantal/npq/.devcontainer .
+npx gh-cp lirantal/npq/.devcontainer .
 
 # Explicit destination and branch
-npx ghcp cli/cli --path ./upstream --ref trunk
+npx gh-cp cli/cli --path ./upstream --ref trunk
 
 # Preview and machine-readable summary
-npx ghcp cli/cli/README.md --dry-run --verbose
-npx ghcp cli/cli/README.md --json .
+npx gh-cp cli/cli/README.md --dry-run --verbose
+npx gh-cp cli/cli/README.md --json .
 ```
 
 ### Flags
@@ -85,4 +85,4 @@ Please consult [CONTRIBUTING](./.github/CONTRIBUTING.md) for guidelines on contr
 
 ## Author
 
-**ghcp** © [Liran Tal](https://github.com/lirantal), Released under the [Apache-2.0](./LICENSE) License.
+**gh-cp** © [Liran Tal](https://github.com/lirantal), Released under the [Apache-2.0](./LICENSE) License.

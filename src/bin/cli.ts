@@ -3,19 +3,19 @@ import { parseArgv, resolveCliInput } from '../cli/argv.ts'
 import { copyFromGithub } from '../copy-from-github.ts'
 import { readCliVersion } from '../version.ts'
 
-const HELP = `ghcp — copy files or directories from a GitHub repository
+const HELP = `gh-cp — copy files or directories from a GitHub repository
 
 Usage:
-  ghcp [options] <owner/repo[/path][#ref]> [destination]
+  gh-cp [options] <owner/repo[/path][#ref]> [destination]
 
 The destination defaults to the current directory. Use --path to override the
 optional second positional argument.
 
 Examples:
-  ghcp lirantal/npq/.devcontainer .
-  ghcp lirantal/npq/.devcontainer --path ./vendor/gh
-  ghcp lirantal/npq#main
-  ghcp lirantal/npq --ref v1.0.0
+  gh-cp lirantal/npq/.devcontainer .
+  gh-cp lirantal/npq/.devcontainer --path ./vendor/gh
+  gh-cp lirantal/npq#main
+  gh-cp lirantal/npq --ref v1.0.0
 
 Options:
   -h, --help       Show this message
@@ -39,7 +39,7 @@ async function main (): Promise<void> {
     parsed = parseArgv(process.argv)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    process.stderr.write(`ghcp: ${msg}\n`)
+    process.stderr.write(`gh-cp: ${msg}\n`)
     process.exitCode = 1
     return
   }
@@ -61,7 +61,7 @@ async function main (): Promise<void> {
     input = resolveCliInput(parsed)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    process.stderr.write(`ghcp: ${msg}\nTry 'ghcp --help' for usage.\n`)
+    process.stderr.write(`gh-cp: ${msg}\nTry 'gh-cp --help' for usage.\n`)
     process.exitCode = 1
     return
   }
@@ -96,7 +96,7 @@ async function main (): Promise<void> {
   } catch (e) {
     const version = readCliVersion()
     const msg = e instanceof Error ? e.message : String(e)
-    process.stderr.write(`ghcp v${version} — ${msg}\n`)
+    process.stderr.write(`gh-cp v${version} — ${msg}\n`)
     const allFailed = msg.includes('gh api, git, and HTTPS API all failed')
     process.exitCode = allFailed ? 2 : 1
   }
@@ -105,6 +105,6 @@ async function main (): Promise<void> {
 main().catch((e: unknown) => {
   const version = readCliVersion()
   const msg = e instanceof Error ? e.message : String(e)
-  process.stderr.write(`ghcp v${version} — ${msg}\n`)
+  process.stderr.write(`gh-cp v${version} — ${msg}\n`)
   process.exit(1)
 })

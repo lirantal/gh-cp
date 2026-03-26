@@ -38,7 +38,7 @@ export async function copyViaGitSparse (opts: {
   log: Logger
 }): Promise<WritePlan[] | null> {
   const url = `https://github.com/${opts.owner}/${opts.repo}.git`
-  const tmpBase = await mkdtemp(path.join(os.tmpdir(), 'ghcp-'))
+  const tmpBase = await mkdtemp(path.join(os.tmpdir(), 'gh-cp-'))
   const repoDir = path.join(tmpBase, 'repo')
 
   try {

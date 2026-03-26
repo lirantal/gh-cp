@@ -1,5 +1,5 @@
 ---
-'ghcp': major
+'gh-cp': major
 ---
 
 MVP release

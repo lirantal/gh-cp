@@ -11,9 +11,9 @@ Files are written under a **destination directory**:
 This matches common `cp`-style usage:
 
 ```sh
-ghcp owner/repo/.devcontainer .
-ghcp owner/repo/.devcontainer ./vendor/templates
-ghcp owner/repo/.devcontainer --path ./vendor/templates
+gh-cp owner/repo/.devcontainer .
+gh-cp owner/repo/.devcontainer ./vendor/templates
+gh-cp owner/repo/.devcontainer --path ./vendor/templates
 ```
 
 ## Flags

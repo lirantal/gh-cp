@@ -1,12 +1,12 @@
-# ghcp documentation
+# gh-cp documentation
 
-**ghcp** copies a file or directory from a GitHub repository into a local folder. It does not preserve git history; it only downloads the tree you ask for.
+**gh-cp** copies a file or directory from a GitHub repository into a local folder. It does not preserve git history; it only downloads the tree you ask for.
 
 ## Quick start
 
 ```sh
-pnpm dlx ghcp owner/repo/.devcontainer .
-npx ghcp owner/repo/README.md ./docs
+pnpm dlx gh-cp owner/repo/.devcontainer .
+npx gh-cp owner/repo/README.md ./docs
 ```
 
 See the [feature guides](./features/) for source syntax, flags, authentication order, and limitations.
@@ -16,9 +16,9 @@ See the [feature guides](./features/) for source syntax, flags, authentication o
 | Approach    | What you get                                                |
 | ----------- | ----------------------------------------------------------- |
 | `git clone` | Full repository, full history (unless shallow)              |
-| **ghcp**    | A snapshot of one path (file or subtree), no `.git`         |
+| **gh-cp**   | A snapshot of one path (file or subtree), no `.git`         |
 
-Use ghcp when you want to vendor a config folder, workflow, or template from another repo without cloning everything.
+Use gh-cp when you want to vendor a config folder, workflow, or template from another repo without cloning everything.
 
 ## Feature index
 

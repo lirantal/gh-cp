@@ -8,7 +8,7 @@ import { createLogger } from '../src/logger.ts'
 
 describe('assertSafeUnderDest', () => {
   test('allows normal relative paths', () => {
-    const d = path.join(os.tmpdir(), 'ghcp-safe')
+    const d = path.join(os.tmpdir(), 'gh-cp-safe')
     const r = assertSafeUnderDest(d, 'a/b.txt')
     assert.ok(r.startsWith(path.resolve(d)))
   })
@@ -24,7 +24,7 @@ describe('assertSafeUnderDest', () => {
 describe('applyWritePlan', () => {
   let tmp: string
   beforeEach(async () => {
-    tmp = await mkdtemp(path.join(os.tmpdir(), 'ghcp-wr-'))
+    tmp = await mkdtemp(path.join(os.tmpdir(), 'gh-cp-wr-'))
   })
   afterEach(async () => {
     await rm(tmp, { recursive: true, force: true })

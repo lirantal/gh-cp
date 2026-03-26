@@ -28,5 +28,5 @@ owner/repo[/path/in/repo][#ref]
 `--ref` overrides any `#ref` in the source string. Prefer `--ref` when `#` is awkward in your shell or when the ref name is unusual.
 
 ```sh
-ghcp acme/widget/.devcontainer --ref my/feature-branch
+gh-cp acme/widget/.devcontainer --ref my/feature-branch
 ```
