@@ -1,5 +1,11 @@
 # gh-cp
 
+## 1.2.0
+
+### Minor Changes
+
+- [`5d589a2`](https://github.com/lirantal/gh-cp/commit/5d589a24a6472ed32bf8c4b101c173977ed702d2) Thanks [@lirantal](https://github.com/lirantal)! - feat: output handling for success and errors
+
 ## 1.1.0
 
 ### Minor Changes
