@@ -24,6 +24,7 @@ Use gh-cp when you want to vendor a config folder, workflow, or template from an
 
 - [Source specification](./features/source-spec.md) — `owner/repo`, paths, branches, tags, and SHAs
 - [Destination and flags](./features/destination-and-flags.md) — `--path`, `--force`, `--dry-run`, `--json`
+- [CLI output and errors](./features/cli-output-and-errors.md) — success line, stderr errors, exit codes **E2001**–**E2004**
 - [Authentication and strategies](./features/authentication-and-strategies.md) — `gh`, then `git`, then HTTPS
 - [Limitations](./features/limitations.md) — LFS, submodules, rate limits
 

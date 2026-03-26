@@ -23,6 +23,10 @@ If both fail, gh-cp calls the GitHub REST API with Node’s built-in `fetch`.
 
 If the API returns **401** or **403**, the error message suggests using `gh`, `git`, or a token.
 
+## When every strategy fails
+
+gh-cp tries **gh** → **git** → **HTTPS** in order. If **all three** fail, it does not only show a generic “could not copy” line: it keeps a short reason from each attempt and surfaces the **most helpful** one—for example a **missing path/ref** (**404**-style) ahead of a generic network error. Final messages are printed on **stderr** with a version prefix and a stable error code; see [CLI output and errors](./cli-output-and-errors.md).
+
 ## Environment variables
 
 | Variable                    | Used by                                      |

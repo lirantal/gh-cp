@@ -1,6 +1,11 @@
 import { walkGithubContents } from '../github/contents-walk.ts'
 import type { Logger } from '../logger.ts'
-import type { WritePlan } from '../safe-write.ts'
+import {
+  failureKindFromMessage,
+  okPlans,
+  strategyFail,
+  type StrategyResult
+} from '../strategy-result.ts'
 
 const API_BASE = 'https://api.github.com/'
 const API_VERSION = '2022-11-28'
@@ -24,7 +29,7 @@ export async function copyViaHttpsApi (opts: {
   repoPath: string
   ref: string | undefined
   log: Logger
-}): Promise<WritePlan[] | null> {
+}): Promise<StrategyResult> {
   const getJson = async (apiPath: string): Promise<unknown> => {
     const url = new URL(apiPath, API_BASE)
     const res = await fetch(url, { headers: authHeaders() })
@@ -35,7 +40,9 @@ export async function copyViaHttpsApi (opts: {
       )
     }
     if (res.status === 404) {
-      throw new Error('GitHub API 404: repository, path, or ref not found')
+      throw new Error(
+        'GitHub API 404: repository, path, or ref not found'
+      )
     }
     if (!res.ok) {
       const t = await res.text()
@@ -59,7 +66,7 @@ export async function copyViaHttpsApi (opts: {
   }
 
   try {
-    return await walkGithubContents({
+    const plans = await walkGithubContents({
       owner: opts.owner,
       repo: opts.repo,
       ref: opts.ref,
@@ -68,10 +75,11 @@ export async function copyViaHttpsApi (opts: {
       getJson,
       getFileBuffer
     })
+    return okPlans(plans)
   } catch (e) {
-    opts.log.verbose(
-      `HTTPS API strategy failed: ${e instanceof Error ? e.message : String(e)}`
-    )
-    return null
+    const msg = e instanceof Error ? e.message : String(e)
+    opts.log.verbose(`HTTPS API strategy failed: ${msg}`)
+    const kind = failureKindFromMessage(msg)
+    return strategyFail('https', kind, msg)
   }
 }
