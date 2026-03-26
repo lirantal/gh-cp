@@ -26,8 +26,12 @@ gh-cp owner/repo/.devcontainer --path ./vendor/templates
 | `--path`      | —     | Output directory (overrides second positional)                 |
 | `--ref`       | —     | Branch, tag, or SHA (overrides `#ref` in the source spec)      |
 | `--force`     | `-f`  | Overwrite existing files                                       |
-| `--dry-run`   | —     | Print what would be written without writing                    |
-| `--json`      | —     | After success, print a JSON summary on stdout                  |
+| `--dry-run`   | —     | Plan without writing; still prints the human success line      |
+| `--json`      | —     | On success, JSON only on stdout (no human success line)        |
+
+## Human-readable success line
+
+Unless **`--json`** is set, a successful run prints **one line to stdout** summarizing how many files and directories were involved (including under **`--dry-run`**). See [CLI output and errors](./cli-output-and-errors.md) for examples and how directory counts work.
 
 ## Exit codes
 
@@ -35,7 +39,9 @@ gh-cp owner/repo/.devcontainer --path ./vendor/templates
 | ---- | -------------------------------------------------------------------------- |
 | 0    | Success                                                                    |
 | 1    | Invalid usage, bad arguments, or file conflicts (without `--force`)        |
-| 2    | All fetch strategies failed                                                |
+| 2    | All fetch strategies failed (versioned error on stderr; see doc below)     |
+
+For stderr format, error codes (**E2001**–**E2004**), and how the “best” error is chosen, see [CLI output and errors](./cli-output-and-errors.md).
 
 ## JSON output
 

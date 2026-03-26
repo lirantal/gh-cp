@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { parseArgv, resolveCliInput } from '../cli/argv.ts'
+import { formatCopySuccessLine } from '../copy-summary.ts'
 import { copyFromGithub } from '../copy-from-github.ts'
+import { CopyFromGithubError } from '../strategy-result.ts'
 import { readCliVersion } from '../version.ts'
 
 const HELP = `gh-cp — copy files or directories from a GitHub repository
@@ -92,14 +94,25 @@ async function main (): Promise<void> {
           input.verbose ? 2 : 0
         )}\n`
       )
+    } else {
+      process.stdout.write(
+        `${formatCopySuccessLine({
+          written: result.written,
+          dryRun: input.dryRun
+        })}\n`
+      )
     }
     process.exitCode = 0
   } catch (e) {
     const version = readCliVersion()
+    if (e instanceof CopyFromGithubError) {
+      process.stderr.write(`gh-cp v${version} — ${e.message}\n`)
+      process.exitCode = e.exitCode
+      return
+    }
     const msg = e instanceof Error ? e.message : String(e)
     process.stderr.write(`gh-cp v${version} — ${msg}\n`)
-    const allFailed = msg.includes('gh api, git, and HTTPS API all failed')
-    process.exitCode = allFailed ? 2 : 1
+    process.exitCode = 1
   }
 }
 

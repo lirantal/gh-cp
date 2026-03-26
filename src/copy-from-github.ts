@@ -6,6 +6,12 @@ import { applyWritePlan, type WritePlan } from './safe-write.ts'
 import { copyViaGhApi } from './strategies/gh-api.ts'
 import { copyViaGitSparse } from './strategies/git-sparse.ts'
 import { copyViaHttpsApi } from './strategies/https-api.ts'
+import {
+  CopyFromGithubError,
+  formatAllStrategiesFailed,
+  selectBestFailure,
+  type StrategyFailure
+} from './strategy-result.ts'
 
 export type FetchStrategyName = 'gh-api' | 'git' | 'https'
 
@@ -37,21 +43,30 @@ async function tryStrategies (
     log: Logger
   },
   order: readonly FetchStrategyName[]
-): Promise<{ strategy: FetchStrategyName; plans: WritePlan[] } | null> {
+): Promise<{ strategy: FetchStrategyName; plans: WritePlan[] }> {
+  const failures: StrategyFailure[] = []
   for (const name of order) {
-    let plans: WritePlan[] | null = null
-    if (name === 'gh-api') {
-      plans = await copyViaGhApi(ctx)
-    } else if (name === 'git') {
-      plans = await copyViaGitSparse(ctx)
-    } else {
-      plans = await copyViaHttpsApi(ctx)
+    const res =
+      name === 'gh-api'
+        ? await copyViaGhApi(ctx)
+        : name === 'git'
+          ? await copyViaGitSparse(ctx)
+          : await copyViaHttpsApi(ctx)
+    if (res.ok) {
+      return { strategy: name, plans: res.plans }
     }
-    if (plans !== null) {
-      return { strategy: name, plans }
-    }
+    failures.push(res.failure)
   }
-  return null
+  const best = selectBestFailure(failures)
+  throw new CopyFromGithubError(
+    best,
+    formatAllStrategiesFailed(best, {
+      owner: ctx.owner,
+      repo: ctx.repo,
+      repoPath: ctx.repoPath,
+      ref: ctx.ref
+    })
+  )
 }
 
 export async function copyFromGithub (
@@ -78,11 +93,6 @@ export async function copyFromGithub (
   }
 
   const tried = await tryStrategies(ctx, ['gh-api', 'git', 'https'])
-  if (tried === null) {
-    throw new Error(
-      'Could not copy from GitHub: gh api, git, and HTTPS API all failed. Install gh or git, or set GITHUB_TOKEN for private repos and rate limits.'
-    )
-  }
 
   log.verbose(`using strategy: ${tried.strategy}`)
 
