@@ -1,0 +1,32 @@
+# Source specification
+
+The first positional argument describes **which** GitHub content to copy.
+
+## Format
+
+```text
+owner/repo[/path/in/repo][#ref]
+```
+
+- **owner** — GitHub user or organization name.
+- **repo** — Repository name.
+- **path** — Optional path to a file or directory inside the repository. If omitted, the repository root is used.
+- **ref** — Optional branch name, tag, or commit SHA, written after `#`. The last `#` in the string starts the ref (use `--ref` if your ref itself contains `#`).
+
+## Examples
+
+| Spec                            | Meaning                                  |
+| ------------------------------- | ---------------------------------------- |
+| `acme/widget`                   | Entire default branch at repository root |
+| `acme/widget/.github/workflows` | That directory tree                      |
+| `acme/widget/LICENSE`           | Single file                              |
+| `acme/widget#v2.0.0`            | Root at tag `v2.0.0`                     |
+| `acme/widget/pkg/cli#main`      | Directory `pkg/cli` on branch `main`     |
+
+## `--ref` vs `#ref`
+
+`--ref` overrides any `#ref` in the source string. Prefer `--ref` when `#` is awkward in your shell or when the ref name is unusual.
+
+```sh
+ghcp acme/widget/.devcontainer --ref my/feature-branch
+```

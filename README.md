@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  A CLI that copies files and directories from GitHub repo paths and downloads them to a local path
+  Copy files or directories from a GitHub repository path into a local folder — no full clone, no git history.
 </p>
 
 <p align="center">
@@ -20,17 +20,64 @@
   <a href="./SECURITY.md"><img src="https://img.shields.io/badge/Security-Responsible%20Disclosure-yellow.svg" alt="Responsible Disclosure Policy" /></a>
 </p>
 
-## Install
+## Example Usage
+
+Execute with `npx` Node.js package manager quick package executable and copy over from a source user or organization
+repository to the local directory
 
 ```sh
-pnpm install ghcp
+npx ghcp user/repo/.github/workflows .
 ```
-## Usage: CLI
 
-```bash
-// @TODO
-const {} = require('ghcp')
+Note: you can also execute with `pnpm` via: `pnpm dlx ghcp `
+
+## Install
+
+Install globally with `pnpm` or with `npm`:
+
+```sh
+# install with pnpm globally
+pnpm add -g ghcp
+
+# or install with npm globally
+npm install -g ghcp
 ```
+
+**Requirements:** Node.js **24+**. Optional but recommended: [GitHub CLI](https://cli.github.com/) (`gh`) and/or `git` on your `PATH` for auth and fewer HTTPS rate limits.
+
+## Usage
+
+```sh
+# Copy a repo subtree into the current directory (like cp -r repo/.devcontainer .)
+npx ghcp lirantal/npq/.devcontainer .
+
+# Explicit destination and branch
+npx ghcp cli/cli --path ./upstream --ref trunk
+
+# Preview and machine-readable summary
+npx ghcp cli/cli/README.md --dry-run --verbose
+npx ghcp cli/cli/README.md --json .
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `-h`, `--help` | Usage |
+| `-V`, `--version` | Version |
+| `-v`, `--verbose` | Log strategy and progress to stderr |
+| `--path DIR` | Output directory (overrides optional second positional) |
+| `--ref REF` | Branch, tag, or SHA (overrides `#ref` in the source spec) |
+| `-f`, `--force` | Overwrite existing files |
+| `--dry-run` | Show planned writes without writing |
+| `--json` | Print JSON summary on success |
+
+Source syntax: `owner/repo[/path][#ref]`. Details: [docs/features/source-spec.md](./docs/features/source-spec.md).
+
+## Documentation
+
+- [docs/README.md](./docs/README.md) — overview and feature index
+- [Authentication & strategies](./docs/features/authentication-and-strategies.md) — `gh` → `git` → HTTPS order
 
 ## Contributing
 

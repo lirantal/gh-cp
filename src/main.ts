@@ -1,3 +1,8 @@
-export async function add (arg1: number, arg2: number): Promise<number> {
-  return Promise.resolve(arg1 + arg2)
-}
+export { copyFromGithub } from './copy-from-github.ts'
+export type {
+  CopyFromGithubOptions,
+  CopyFromGithubResult,
+  FetchStrategyName
+} from './copy-from-github.ts'
+export { parseSourceSpec } from './parse-source-spec.ts'
+export type { ParsedSourceSpec } from './parse-source-spec.ts'
