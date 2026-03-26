@@ -72,7 +72,7 @@ npx gh-cp cli/cli/README.md --json .
 | `--dry-run` | Show planned writes without writing |
 | `--json` | Print JSON summary on success |
 
-Source syntax: `owner/repo[/path][#ref]`. Details: [docs/features/source-spec.md](./docs/features/source-spec.md).
+Source syntax: `owner/repo[/path][#ref]` (also supports GitHub web path forms like `owner/repo/blob/ref/path`). Details: [docs/features/source-spec.md](./docs/features/source-spec.md).
 
 ## Documentation
 

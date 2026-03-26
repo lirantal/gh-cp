@@ -1,11 +1,27 @@
 /**
- * Parse `owner/repo[/path][#ref]` (ref from `#` is overridden by CLI `--ref` when set).
+ * Parse `owner/repo[/path][#ref]` and GitHub web path variants
+ * (`owner/repo/blob/ref/path` and `owner/repo/tree/ref/path`).
+ * Ref from `#` is overridden by CLI `--ref` when set.
  */
 export interface ParsedSourceSpec {
   owner: string
   repo: string
   repoPath: string
   refFromHash: string | undefined
+}
+
+function normalizeGithubPrefix (value: string): string {
+  const lowered = value.toLowerCase()
+  if (lowered.startsWith('https://github.com/')) {
+    return value.slice('https://github.com/'.length)
+  }
+  if (lowered.startsWith('http://github.com/')) {
+    return value.slice('http://github.com/'.length)
+  }
+  if (lowered.startsWith('github.com/')) {
+    return value.slice('github.com/'.length)
+  }
+  return value
 }
 
 function isValidGithubName (name: string, maxLen: number): boolean {
@@ -24,7 +40,7 @@ export function parseSourceSpec (raw: string): ParsedSourceSpec {
     throw new Error('Source spec is empty')
   }
 
-  let remainder = trimmed
+  let remainder = normalizeGithubPrefix(trimmed)
   let refFromHash: string | undefined
   const hashIdx = remainder.lastIndexOf('#')
   if (hashIdx >= 0) {
@@ -44,7 +60,21 @@ export function parseSourceSpec (raw: string): ParsedSourceSpec {
 
   const owner = segments[0] ?? ''
   const repo = segments[1] ?? ''
-  const rest = segments.slice(2)
+  let rest = segments.slice(2)
+  const webMode = (rest[0] ?? '').toLowerCase()
+  if (webMode === 'blob' || webMode === 'tree') {
+    const inferredRef = rest[1]
+    if (inferredRef === undefined || inferredRef.length === 0) {
+      throw new Error(
+        `Invalid source spec "${raw}": expected owner/repo/${webMode}/<ref>[/path]`
+      )
+    }
+    if (refFromHash === undefined) {
+      refFromHash = inferredRef
+    }
+    rest = rest.slice(2)
+  }
+
   let repoPath = rest.join('/')
   repoPath = repoPath.replace(/^\.\/+/, '').replace(/\/+$/, '')
 

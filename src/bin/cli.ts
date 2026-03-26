@@ -14,6 +14,7 @@ optional second positional argument.
 Examples:
   gh-cp lirantal/npq/.devcontainer .
   gh-cp lirantal/npq/.devcontainer --path ./vendor/gh
+  gh-cp lirantal/create-node-lib/blob/main/template/.npmrc
   gh-cp lirantal/npq#main
   gh-cp lirantal/npq --ref v1.0.0
 
