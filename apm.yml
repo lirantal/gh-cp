@@ -1,0 +1,9 @@
+name: ghcp
+version: 1.0.0
+description: APM project for ghcp
+author: Liran Tal
+dependencies:
+  apm:
+  - lirantal/nodejs-cli-apps-best-practices/skills/nodejs-cli-best-practices
+  mcp: []
+scripts: {}
