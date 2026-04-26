@@ -16,7 +16,6 @@
   <a href="https://www.npmjs.com/package/gh-cp"><img src="https://badgen.net/npm/dt/gh-cp" alt="downloads"/></a>
   <a href="https://github.com/lirantal/gh-cp/actions?workflow=CI"><img src="https://github.com/lirantal/gh-cp/workflows/CI/badge.svg" alt="build"/></a>
   <a href="https://app.codecov.io/gh/lirantal/gh-cp"><img src="https://badgen.net/codecov/c/github/lirantal/gh-cp" alt="codecov"/></a>
-  <a href="https://snyk.io/test/github/lirantal/gh-cp"><img src="https://snyk.io/test/github/lirantal/gh-cp/badge.svg" alt="Known Vulnerabilities"/></a>
   <a href="./SECURITY.md"><img src="https://img.shields.io/badge/Security-Responsible%20Disclosure-yellow.svg" alt="Responsible Disclosure Policy" /></a>
 </p>
 
