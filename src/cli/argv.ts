@@ -103,6 +103,32 @@ export interface ResolvedCliInput {
   json: boolean
 }
 
+export interface ResolvedAliasCommand {
+  command: 'alias'
+  aliasName: string
+  sourceSpec: string
+}
+
+export interface ResolvedInstallCommand {
+  command: 'install'
+  aliasName: string | undefined
+  destination: string
+  ref: string | undefined
+  verbose: boolean
+  force: boolean
+  dryRun: boolean
+  json: boolean
+}
+
+export interface ResolvedCopyCommand extends ResolvedCliInput {
+  command: 'copy'
+}
+
+export type ResolvedCliCommand =
+  | ResolvedAliasCommand
+  | ResolvedInstallCommand
+  | ResolvedCopyCommand
+
 export function resolveCliInput (parsed: ParsedArgv): ResolvedCliInput {
   if (parsed.help || parsed.version) {
     return {
@@ -136,5 +162,65 @@ export function resolveCliInput (parsed: ParsedArgv): ResolvedCliInput {
     force: parsed.force,
     dryRun: parsed.dryRun,
     json: parsed.json
+  }
+}
+
+export function resolveCliCommand (parsed: ParsedArgv): ResolvedCliCommand {
+  if (parsed.help || parsed.version) {
+    return {
+      command: 'copy',
+      ...resolveCliInput(parsed)
+    }
+  }
+
+  const [command, firstArg, secondArg, ...extra] = parsed.positionals
+
+  if (command === 'alias') {
+    if (firstArg === undefined || firstArg.length === 0) {
+      throw new Error('Missing alias name: expected gh-cp alias <alias-name> <source>')
+    }
+    if (secondArg === undefined || secondArg.length === 0) {
+      throw new Error('Missing alias source: expected gh-cp alias <alias-name> <source>')
+    }
+    if (extra.length > 0) {
+      throw new Error('Too many arguments for alias: expected gh-cp alias <alias-name> <source>')
+    }
+    if (
+      parsed.pathFlag !== undefined ||
+      parsed.refFlag !== undefined ||
+      parsed.force ||
+      parsed.dryRun ||
+      parsed.json
+    ) {
+      throw new Error('Copy flags are not supported with the alias command')
+    }
+
+    return {
+      command: 'alias',
+      aliasName: firstArg,
+      sourceSpec: secondArg
+    }
+  }
+
+  if (command === 'install') {
+    if (extra.length > 0) {
+      throw new Error('Too many arguments for install: expected gh-cp install [alias-name] [destination]')
+    }
+
+    return {
+      command: 'install',
+      aliasName: firstArg,
+      destination: parsed.pathFlag ?? secondArg ?? process.cwd(),
+      ref: parsed.refFlag,
+      verbose: parsed.verbose,
+      force: parsed.force,
+      dryRun: parsed.dryRun,
+      json: parsed.json
+    }
+  }
+
+  return {
+    command: 'copy',
+    ...resolveCliInput(parsed)
   }
 }
