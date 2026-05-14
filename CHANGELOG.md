@@ -1,5 +1,11 @@
 # gh-cp
 
+## 1.3.0
+
+### Minor Changes
+
+- [`424f490`](https://github.com/lirantal/gh-cp/commit/424f4905e2e0418b511baa3c6db63278ac92abd0) Thanks [@lirantal](https://github.com/lirantal)! - feat: aliasing and interactive menu
+
 ## 1.2.0
 
 ### Minor Changes
