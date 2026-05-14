@@ -1,6 +1,10 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { parseArgv, resolveCliInput } from '../src/cli/argv.ts'
+import {
+  parseArgv,
+  resolveCliCommand,
+  resolveCliInput
+} from '../src/cli/argv.ts'
 
 describe('parseArgv', () => {
   test('parses flags and positionals', () => {
@@ -37,5 +41,82 @@ describe('parseArgv', () => {
 
   test('unknown option throws', () => {
     assert.throws(() => parseArgv(['node', 'cli', '--nope']), /Unknown option/)
+  })
+
+  test('resolves alias command', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'alias',
+      'devcontainer',
+      'github.com/lirantal/create-node-lib/tree/main/template/.devcontainer/'
+    ]))
+
+    assert.strictEqual(command.command, 'alias')
+    assert.strictEqual(command.aliasName, 'devcontainer')
+    assert.strictEqual(
+      command.sourceSpec,
+      'github.com/lirantal/create-node-lib/tree/main/template/.devcontainer/'
+    )
+  })
+
+  test('resolves install command with destination', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'install',
+      'devcontainer',
+      'out',
+      '--force',
+      '--ref',
+      'main'
+    ]))
+
+    assert.strictEqual(command.command, 'install')
+    assert.strictEqual(command.aliasName, 'devcontainer')
+    assert.strictEqual(command.destination, 'out')
+    assert.strictEqual(command.force, true)
+    assert.strictEqual(command.ref, 'main')
+  })
+
+  test('resolves interactive install command', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'install',
+      '--path',
+      'out'
+    ]))
+
+    assert.strictEqual(command.command, 'install')
+    assert.strictEqual(command.aliasName, undefined)
+    assert.strictEqual(command.destination, 'out')
+  })
+
+  test('keeps direct copy as default command', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'o/r/p',
+      'out'
+    ]))
+
+    assert.strictEqual(command.command, 'copy')
+    assert.strictEqual(command.sourceSpec, 'o/r/p')
+    assert.strictEqual(command.destination, 'out')
+  })
+
+  test('rejects copy flags on alias command', () => {
+    assert.throws(
+      () => resolveCliCommand(parseArgv([
+        'node',
+        'cli',
+        'alias',
+        'dev',
+        'o/r',
+        '--json'
+      ])),
+      /Copy flags are not supported/
+    )
   })
 })

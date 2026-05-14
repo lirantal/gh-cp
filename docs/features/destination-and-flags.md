@@ -14,6 +14,7 @@ This matches common `cp`-style usage:
 gh-cp owner/repo/.devcontainer .
 gh-cp owner/repo/.devcontainer ./vendor/templates
 gh-cp owner/repo/.devcontainer --path ./vendor/templates
+gh-cp install devcontainer ./vendor/templates
 ```
 
 ## Flags
@@ -28,6 +29,8 @@ gh-cp owner/repo/.devcontainer --path ./vendor/templates
 | `--force`     | `-f`  | Overwrite existing files                                       |
 | `--dry-run`   | —     | Plan without writing; still prints the human success line      |
 | `--json`      | —     | On success, JSON only on stdout (no human success line)        |
+
+The same copy flags apply to `gh-cp install <alias-name>` because it resolves the alias to a source spec and then uses the normal copy flow. Interactive `gh-cp install` cannot be combined with `--json`; pass an alias name when you need structured output.
 
 ## Human-readable success line
 

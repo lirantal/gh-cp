@@ -1,7 +1,16 @@
 #!/usr/bin/env node
-import { parseArgv, resolveCliInput } from '../cli/argv.ts'
+import { loadAliases, setAlias } from '../aliases-store.ts'
+import {
+  parseArgv,
+  resolveCliCommand,
+  type ResolvedCliInput
+} from '../cli/argv.ts'
 import { formatCopySuccessLine } from '../copy-summary.ts'
 import { copyFromGithub } from '../copy-from-github.ts'
+import {
+  selectAliasInteractively,
+  toAliasMenuItems
+} from '../interactive-alias-menu.ts'
 import { CopyFromGithubError } from '../strategy-result.ts'
 import { readCliVersion } from '../version.ts'
 
@@ -9,6 +18,8 @@ const HELP = `gh-cp — copy files or directories from a GitHub repository
 
 Usage:
   gh-cp [options] <owner/repo[/path][#ref]> [destination]
+  gh-cp alias <alias-name> <owner/repo[/path][#ref]>
+  gh-cp install [alias-name] [destination]
 
 The destination defaults to the current directory. Use --path to override the
 optional second positional argument.
@@ -19,6 +30,9 @@ Examples:
   gh-cp lirantal/create-node-lib/blob/main/template/.npmrc
   gh-cp lirantal/npq#main
   gh-cp lirantal/npq --ref v1.0.0
+  gh-cp alias devcontainer github.com/lirantal/create-node-lib/tree/main/template/.devcontainer/
+  gh-cp install devcontainer .
+  gh-cp install
 
 Options:
   -h, --help       Show this message
@@ -35,6 +49,42 @@ Exit codes:
   1  Usage or validation error
   2  All fetch strategies failed
 `
+
+async function runCopy (input: ResolvedCliInput): Promise<void> {
+  const result = await copyFromGithub({
+    sourceSpec: input.sourceSpec,
+    destination: input.destination,
+    refOverride: input.ref,
+    force: input.force,
+    dryRun: input.dryRun,
+    verbose: input.verbose
+  })
+
+  if (input.json) {
+    process.stdout.write(
+      `${JSON.stringify(
+        {
+          strategy: result.strategy,
+          files: result.written,
+          owner: result.owner,
+          repo: result.repo,
+          path: result.repoPath,
+          ref: result.ref ?? null
+        },
+        null,
+        input.verbose ? 2 : 0
+      )}\n`
+    )
+  } else {
+    process.stdout.write(
+      `${formatCopySuccessLine({
+        written: result.written,
+        dryRun: input.dryRun
+      })}\n`
+    )
+  }
+  process.exitCode = 0
+}
 
 async function main (): Promise<void> {
   let parsed
@@ -59,9 +109,9 @@ async function main (): Promise<void> {
     return
   }
 
-  let input
+  let command
   try {
-    input = resolveCliInput(parsed)
+    command = resolveCliCommand(parsed)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     process.stderr.write(`gh-cp: ${msg}\nTry 'gh-cp --help' for usage.\n`)
@@ -70,39 +120,60 @@ async function main (): Promise<void> {
   }
 
   try {
-    const result = await copyFromGithub({
-      sourceSpec: input.sourceSpec,
-      destination: input.destination,
-      refOverride: input.ref,
-      force: input.force,
-      dryRun: input.dryRun,
-      verbose: input.verbose
-    })
-
-    if (input.json) {
+    if (command.command === 'alias') {
+      await setAlias(command.aliasName, command.sourceSpec)
       process.stdout.write(
-        `${JSON.stringify(
-          {
-            strategy: result.strategy,
-            files: result.written,
-            owner: result.owner,
-            repo: result.repo,
-            path: result.repoPath,
-            ref: result.ref ?? null
-          },
-          null,
-          input.verbose ? 2 : 0
-        )}\n`
+        `saved alias "${command.aliasName}" -> ${command.sourceSpec}\n`
       )
-    } else {
-      process.stdout.write(
-        `${formatCopySuccessLine({
-          written: result.written,
-          dryRun: input.dryRun
-        })}\n`
-      )
+      process.exitCode = 0
+      return
     }
-    process.exitCode = 0
+
+    if (command.command === 'install') {
+      const aliases = await loadAliases()
+      let sourceSpec: string | undefined
+      if (command.aliasName !== undefined) {
+        sourceSpec = aliases[command.aliasName]
+        if (sourceSpec === undefined) {
+          throw new Error(
+            `Unknown alias "${command.aliasName}". Run 'gh-cp install' to choose from saved aliases.`
+          )
+        }
+      } else {
+        if (command.json) {
+          throw new Error(
+            'Interactive install does not support --json. Pass an alias name, for example: gh-cp install <alias-name> --json.'
+          )
+        }
+        const items = toAliasMenuItems(aliases)
+        if (items.length === 0) {
+          throw new Error(
+            "No aliases saved. Run 'gh-cp alias <name> <source>' first."
+          )
+        }
+        const selected = await selectAliasInteractively(items, command.destination)
+        if (selected === undefined) {
+          process.exitCode = 0
+          return
+        }
+        sourceSpec = selected.sourceSpec
+      }
+
+      await runCopy({
+        sourceSpec,
+        destination: command.destination,
+        ref: command.ref,
+        help: false,
+        version: false,
+        verbose: command.verbose,
+        force: command.force,
+        dryRun: command.dryRun,
+        json: command.json
+      })
+      return
+    }
+
+    await runCopy(command)
   } catch (e) {
     const version = readCliVersion()
     if (e instanceof CopyFromGithubError) {
