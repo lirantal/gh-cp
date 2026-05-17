@@ -105,7 +105,7 @@ Run `npx gh-cp install` without an alias name to choose from saved aliases in a 
 
 ## Contributing
 
-Please consult [CONTRIBUTING](./.github/CONTRIBUTING.md) for guidelines on contributing to this project.
+Please consult [CONTRIBUTING](./CONTRIBUTING.md) for guidelines on contributing to this project.
 
 ## Author
 
