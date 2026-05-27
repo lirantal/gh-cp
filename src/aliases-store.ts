@@ -50,7 +50,7 @@ export function validateAliasSource (sourceSpec: string): void {
     parseSourceSpec(sourceSpec)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    throw new Error(`Invalid alias source "${sourceSpec}": ${msg}`)
+    throw new Error(`Invalid alias source "${sourceSpec}": ${msg}`, { cause: e })
   }
 }
 
@@ -107,7 +107,7 @@ export async function loadAliases (opts: AliasStoreOptions = {}): Promise<Aliase
     return assertPlainAliases(JSON.parse(raw), filePath)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    throw new Error(`Failed to read aliases: ${msg}`)
+    throw new Error(`Failed to read aliases: ${msg}`, { cause: e })
   }
 }
 

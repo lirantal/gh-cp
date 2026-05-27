@@ -6,7 +6,7 @@ jobs:
   test:
     strategy:
       matrix:
-        node: ["22.x"]
+        node: ["24.x"]
         platform: [ubuntu-latest]
     name: Node v${{matrix.node}} ((${{matrix.platform}}))
     runs-on: ${{matrix.platform}}
@@ -44,7 +44,7 @@ jobs:
   #     - uses: pnpm/action-setup@v6
   #     - uses: actions/setup-node@v6
   #       with:
-  #         node-version: "22.x"
+  #         node-version: "24.x"
   #         cache: 'pnpm'
   #     - name: install dependencies
   #       run: pnpm install --frozen-lockfile
