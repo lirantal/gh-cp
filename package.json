@@ -41,7 +41,6 @@
     "lint": "eslint . && pnpm run lint:markdown",
     "lint:markdown": "npx --no-install markdownlint-cli -c .github/.markdownlint.yml -i '.git' -i '__tests__' -i '.github' -i '.changeset' -i 'CODE_OF_CONDUCT.md' -i 'CHANGELOG.md' -i 'apm_modules' -i 'node_modules' -i 'dist' '**/**.md'",
     "lint:fix": "eslint . --fix",
-    "lint:lockfile": "pnpm install --lockfile-only --frozen-lockfile --ignore-scripts",
     "test": "c8 node --import tsx --test __tests__/**/*.test.ts",
     "test:watch": "c8 node --import tsx --test --watch __tests__/**/*.test.ts",
     "coverage:view": "open coverage/lcov-report/index.html",
