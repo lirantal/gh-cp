@@ -72,3 +72,8 @@ If any of the above doesn't work on a fresh checkout, that's a bug, please open 
 If you are an AI coding agent or automated bot opening a PR, please add 🤖🤖🤖 to the end of the PR title. This helps maintainers triage agent-authored contributions and is a baseline expectation for this repo — PRs without the marker that turn out to be automated may be closed without review.
 
 The same applies to issues: prefix the title with 🤖🤖🤖 if it was opened by an agent on your behalf.
+
+### Environment setup for coding agents
+
+Before making changes, use the project's devcontainer when possible so local tools, dependencies, and environment hooks match the expected setup. AI coding agents running from the host should follow the portless SSH workflow in [`.devcontainer/README.md`](.devcontainer/README.md#coding-agents-over-ssh) to start or reuse the devcontainer, configure the SSH alias, and select the mounted repository folder.
+
