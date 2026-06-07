@@ -16,12 +16,15 @@
 # @options
 #   --shell     Start the dev container and attach an interactive shell (default).
 #   --ssh-proxy Start/reuse the dev container and proxy SSH over docker exec.
+#   --install-ssh-config
+#               Install/update the host SSH config alias and exit.
 #   --recreate  Remove the existing dev container for this workspace before `up`, so
 #               changes to runArgs (or other create-time settings) take effect.
 #   --help, -h  Print usage and exit.
 #
 # @example
 #   .devcontainer/start.sh
+#   .devcontainer/start.sh --install-ssh-config
 #   .devcontainer/start.sh --ssh-proxy
 #   .devcontainer/start.sh --recreate
 #
@@ -55,6 +58,8 @@ Options:
   --shell       Start the dev container and open an interactive shell (default).
   --ssh-proxy  Start/reuse the dev container and proxy SSH over docker exec.
                 Intended for SSH ProxyCommand; stdout is reserved for SSH traffic.
+  --install-ssh-config
+                Install/update the host SSH config alias and exit.
   --recreate    Remove the existing dev container for this workspace before starting,
                 so Docker picks up new settings (e.g. runArgs / port mappings).
   --help, -h    Show this help and exit.
@@ -117,6 +122,15 @@ ensure_host_ssh_key() {
 
   chmod 0600 "$SSH_KEY_PATH"
   chmod 0644 "${SSH_KEY_PATH}.pub"
+}
+
+install_ssh_config_alias() {
+  if [ ! -r "${SCRIPT_DIR}/ssh-config-install.sh" ]; then
+    die "Missing SSH config installer: ${SCRIPT_DIR}/ssh-config-install.sh"
+  fi
+
+  DEVCONTAINER_SSH_HOST_ALIAS="${DEVCONTAINER_SSH_HOST_ALIAS:-${REPO_NAME}-devcontainer}" \
+    bash "${SCRIPT_DIR}/ssh-config-install.sh" "$@"
 }
 
 start_devcontainer() {
@@ -196,6 +210,7 @@ ensure_container_sshd_runtime() {
 }
 
 run_ssh_proxy() {
+  install_ssh_config_alias --quiet >&2
   ensure_host_ssh_key
   start_devcontainer
   ensure_container_sshd_runtime
@@ -230,6 +245,10 @@ while [ $# -gt 0 ]; do
       MODE="ssh-proxy"
       shift
       ;;
+    --install-ssh-config)
+      MODE="install-ssh-config"
+      shift
+      ;;
     --recreate)
       RECREATE=true
       shift
@@ -248,5 +267,8 @@ case "$MODE" in
     ;;
   ssh-proxy)
     run_ssh_proxy
+    ;;
+  install-ssh-config)
+    install_ssh_config_alias
     ;;
 esac

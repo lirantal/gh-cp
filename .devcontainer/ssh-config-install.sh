@@ -14,6 +14,7 @@ SSH_KEY_PATH="${DEVCONTAINER_SSH_KEY_PATH:-${SSH_KEY_DIR}/id_ed25519}"
 START_SCRIPT="${SCRIPT_DIR}/start.sh"
 BEGIN_MARKER="# BEGIN ${HOST_ALIAS} devcontainer ssh"
 END_MARKER="# END ${HOST_ALIAS} devcontainer ssh"
+QUIET=false
 
 usage() {
   cat <<EOF
@@ -24,6 +25,7 @@ Install or update a host SSH config alias for this repo's devcontainer.
 Options:
   --alias <name>       SSH host alias to write (default: ${HOST_ALIAS})
   --config <path>      SSH config file to update (default: ${SSH_CONFIG})
+  --quiet              Only print errors.
   --help, -h           Show this help and exit.
 
 Environment overrides:
@@ -37,6 +39,12 @@ EOF
 die() {
   printf '%s\n' "$*" >&2
   exit 1
+}
+
+log() {
+  if [ "$QUIET" != true ]; then
+    printf '%s\n' "$*"
+  fi
 }
 
 ssh_config_quote() {
@@ -55,7 +63,7 @@ ensure_host_ssh_key() {
   chmod 0700 "$SSH_KEY_DIR"
 
   if [ ! -f "$SSH_KEY_PATH" ]; then
-    echo "Generating devcontainer SSH identity: $SSH_KEY_PATH"
+    log "Generating devcontainer SSH identity: $SSH_KEY_PATH"
     ssh-keygen -t ed25519 -f "$SSH_KEY_PATH" -N "" -C "${REPO_NAME}-devcontainer" >/dev/null
   fi
 
@@ -72,6 +80,7 @@ write_ssh_config_block() {
   local tmp_file
   local start_script_quoted
   local key_path_quoted
+  local host_alias_quoted
 
   ssh_dir="$(dirname "$SSH_CONFIG")"
   mkdir -p "$ssh_dir"
@@ -88,6 +97,7 @@ write_ssh_config_block() {
 
   start_script_quoted="$(ssh_config_quote "$START_SCRIPT")"
   key_path_quoted="$(ssh_config_quote "$SSH_KEY_PATH")"
+  host_alias_quoted="$(ssh_config_quote "$HOST_ALIAS")"
 
   {
     sed -e '${/^$/d;}' "$tmp_file"
@@ -98,14 +108,21 @@ write_ssh_config_block() {
     printf '  IdentityFile none\n'
     printf '  IdentityFile %s\n' "$key_path_quoted"
     printf '  IdentitiesOnly yes\n'
-    printf '  ProxyCommand /bin/bash %s --ssh-proxy\n' "$start_script_quoted"
+    printf '  ProxyCommand env DEVCONTAINER_SSH_HOST_ALIAS=%s /bin/bash %s --ssh-proxy\n' "$host_alias_quoted" "$start_script_quoted"
     printf '  StrictHostKeyChecking no\n'
     printf '  UserKnownHostsFile /dev/null\n'
     printf '  LogLevel ERROR\n'
     printf '%s\n' "$END_MARKER"
   } > "${tmp_file}.next"
 
-  mv "${tmp_file}.next" "$SSH_CONFIG"
+  if cmp -s "$SSH_CONFIG" "${tmp_file}.next"; then
+    log "SSH alias already up to date: ${HOST_ALIAS}"
+    rm -f "${tmp_file}.next"
+  else
+    mv "${tmp_file}.next" "$SSH_CONFIG"
+    log "Installed SSH alias: ${HOST_ALIAS}"
+  fi
+
   rm -f "$tmp_file"
   chmod 0600 "$SSH_CONFIG"
 }
@@ -128,6 +145,10 @@ while [ $# -gt 0 ]; do
       SSH_CONFIG="$2"
       shift 2
       ;;
+    --quiet)
+      QUIET=true
+      shift
+      ;;
     *)
       die "Unknown option: $1"
       ;;
@@ -137,8 +158,8 @@ done
 ensure_host_ssh_key
 write_ssh_config_block
 
-cat <<EOF
-Installed SSH alias: ${HOST_ALIAS}
+if [ "$QUIET" != true ]; then
+  cat <<EOF
 SSH config: ${SSH_CONFIG}
 Identity file: ${SSH_KEY_PATH}
 
@@ -148,3 +169,4 @@ Validate with:
 Use this host alias in Cursor, Claude, or any other SSH client:
   ${HOST_ALIAS}
 EOF
+fi

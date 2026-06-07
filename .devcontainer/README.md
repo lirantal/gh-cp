@@ -44,7 +44,7 @@ Requires Docker running. Uses `npx @devcontainers/cli` to `up` the workspace, th
 From the **repository root** on your host, install or update the SSH alias:
 
 ```bash
-bash .devcontainer/ssh-config-install.sh
+bash .devcontainer/start.sh --install-ssh-config
 ```
 
 By default, this creates:
@@ -72,7 +72,7 @@ To customize the alias, run:
 bash .devcontainer/ssh-config-install.sh --alias my-project-devcontainer
 ```
 
-This workflow does not publish an SSH port. OpenSSH talks to `sshd -i` over `docker exec`, while `@devcontainers/cli up` still owns the devcontainer lifecycle.
+This workflow does not publish an SSH port. OpenSSH talks to `sshd -i` over `docker exec`, while `@devcontainers/cli up` still owns the devcontainer lifecycle. The installer is idempotent and `start.sh --ssh-proxy` quietly refreshes the generated SSH config before proxying.
 
 ### Coding agents over SSH
 
@@ -81,7 +81,7 @@ If you are a coding agent running on the host OS, prefer the SSH alias workflow.
 From the repository root on the host:
 
 ```bash
-bash .devcontainer/ssh-config-install.sh
+bash .devcontainer/start.sh --install-ssh-config
 ssh <repo-name>-devcontainer 'whoami && pwd'
 ```
 
@@ -95,7 +95,8 @@ Use the generated host alias when configuring the agent:
 `start.sh` has two modes:
 
 - `bash .devcontainer/start.sh` starts or reuses the devcontainer and opens an interactive shell. Use this for a local terminal session.
-- `bash .devcontainer/start.sh --ssh-proxy` starts or reuses the devcontainer and then bridges SSH over `docker exec`. Do not keep this running manually in a terminal; it is meant to be launched by OpenSSH as the `ProxyCommand` in the generated SSH config.
+- `bash .devcontainer/start.sh --install-ssh-config` installs or refreshes the host SSH alias and exits.
+- `bash .devcontainer/start.sh --ssh-proxy` refreshes the SSH alias, starts or reuses the devcontainer, and then bridges SSH over `docker exec`. Do not keep this running manually in a terminal; it is meant to be launched by OpenSSH as the `ProxyCommand` in the generated SSH config.
 
 If the devcontainer does not exist yet, the first SSH connection through `<repo-name>-devcontainer` will create it with `@devcontainers/cli up`, including `initializeCommand`, features, mounts, `postCreateCommand`, and `postStartCommand`. The first connection may take longer while the container is created.
 
