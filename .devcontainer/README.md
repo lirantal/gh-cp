@@ -50,21 +50,21 @@ bash .devcontainer/ssh-config-install.sh
 By default, this creates:
 
 - A repo-local SSH identity at `.devcontainer/.ssh/id_ed25519`.
-- A marked `Host gh-cp-devcontainer` block in `~/.ssh/config`.
+- A marked `Host <repo-name>-devcontainer` block in `~/.ssh/config`, where `<repo-name>` is the local repository directory name.
 - A `ProxyCommand` that runs `.devcontainer/start.sh --ssh-proxy`.
 
 Validate with plain OpenSSH first:
 
 ```bash
-ssh gh-cp-devcontainer 'whoami && pwd'
+ssh <repo-name>-devcontainer 'whoami && pwd'
 ```
 
 Then use the same host alias in Cursor, Claude, or any other SSH client:
 
-- **SSH Host:** `gh-cp-devcontainer`
+- **SSH Host:** `<repo-name>-devcontainer`
 - **SSH Port:** leave empty
 - **Identity File:** leave empty if the client reads `~/.ssh/config`; otherwise use `.devcontainer/.ssh/id_ed25519`
-- **Remote Folder:** select `gh-cp` from the default home folder, or enter `/workspaces/gh-cp`
+- **Remote Folder:** select `<repo-name>` from the default home folder, or enter `/workspaces/<repo-name>`
 
 To customize the alias, run:
 
@@ -73,6 +73,31 @@ bash .devcontainer/ssh-config-install.sh --alias my-project-devcontainer
 ```
 
 This workflow does not publish an SSH port. OpenSSH talks to `sshd -i` over `docker exec`, while `@devcontainers/cli up` still owns the devcontainer lifecycle.
+
+### Coding agents over SSH
+
+If you are a coding agent running on the host OS, prefer the SSH alias workflow. It gives Claude, Cursor, Codex, and plain OpenSSH a normal SSH host while preserving this repo's devcontainer lifecycle.
+
+From the repository root on the host:
+
+```bash
+bash .devcontainer/ssh-config-install.sh
+ssh <repo-name>-devcontainer 'whoami && pwd'
+```
+
+Use the generated host alias when configuring the agent:
+
+- **SSH Host:** `<repo-name>-devcontainer`
+- **SSH Port:** leave empty
+- **Identity File:** leave empty if the agent honors `~/.ssh/config`; otherwise use `.devcontainer/.ssh/id_ed25519`
+- **Remote Folder:** select `<repo-name>` from the default home folder, or enter `/workspaces/<repo-name>`
+
+`start.sh` has two modes:
+
+- `bash .devcontainer/start.sh` starts or reuses the devcontainer and opens an interactive shell. Use this for a local terminal session.
+- `bash .devcontainer/start.sh --ssh-proxy` starts or reuses the devcontainer and then bridges SSH over `docker exec`. Do not keep this running manually in a terminal; it is meant to be launched by OpenSSH as the `ProxyCommand` in the generated SSH config.
+
+If the devcontainer does not exist yet, the first SSH connection through `<repo-name>-devcontainer` will create it with `@devcontainers/cli up`, including `initializeCommand`, features, mounts, `postCreateCommand`, and `postStartCommand`. The first connection may take longer while the container is created.
 
 ## Environment variables (host → container)
 
