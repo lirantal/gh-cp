@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEVCONTAINER_DIR="$(cd "${HOOKS_DIR}/.." && pwd)"
 
 main() {
   configure_sshd_runtime
@@ -12,7 +13,7 @@ main() {
 }
 
 configure_sshd_runtime() {
-  bash "${SCRIPT_DIR}/utils/ssh-bootstrap.sh" runtime
+  bash "${DEVCONTAINER_DIR}/utils/ssh-bootstrap.sh" runtime
 }
 
 # When initializeCommand + runArgs inject secrets via .env.development, remove the file

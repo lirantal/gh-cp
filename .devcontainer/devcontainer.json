@@ -59,7 +59,7 @@
     ],
 
     // Initialize optional host-side secrets before container create/start.
-    "initializeCommand": "bash .devcontainer/initialize.sh",
+    "initializeCommand": "bash .devcontainer/hooks/initialize.sh",
     // After up, discover the published host binding, e.g.:
     // docker port <container-name-or-id> 3000/tcp
     "runArgs": [
@@ -71,8 +71,8 @@
         "${localWorkspaceFolder}/.env.development"
     ],
     // --
-    "postCreateCommand": "bash .devcontainer/post-create.sh",
-    "postStartCommand": "bash .devcontainer/post-start.sh",
+    "postCreateCommand": "bash .devcontainer/hooks/post-create.sh",
+    "postStartCommand": "bash .devcontainer/hooks/post-start.sh",
     "remoteUser": "node",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "containerEnv": {

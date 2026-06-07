@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_DIR="$(cd "${HOOKS_DIR}/../.." && pwd)"
 ENV_FILE="${WORKSPACE_DIR}/.env.development"
 OP_TOKEN_REFERENCE="op://Private/1Password op CLI Service Account for DevContainers/password"
 
