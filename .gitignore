@@ -90,3 +90,6 @@ typings/
 
 # APM dependencies
 apm_modules/
+
+# Repo-local devcontainer SSH identity
+.devcontainer/.ssh/

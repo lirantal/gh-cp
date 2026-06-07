@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 main() {
   configure_local_git
+  install_openssh_server
   install_apm
   # install_opencode_cli
   install_1password_cli
@@ -27,6 +28,10 @@ install_apm() {
 
 install_opencode_cli() {
   curl -fsSL https://opencode.ai/install | bash
+}
+
+install_openssh_server() {
+  bash "${SCRIPT_DIR}/utils/ssh-bootstrap.sh" install
 }
 
 install_snyk_cli() {

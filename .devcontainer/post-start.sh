@@ -2,8 +2,17 @@
 # post-start: runs after each container start (postStartCommand in devcontainer.json).
 # Naming matches post-create.sh; extend with more steps as needed (e.g. source scripts from .devcontainer/utils/).
 
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 main() {
+  configure_sshd_runtime
   remove_ephemeral_env_file_if_present
+}
+
+configure_sshd_runtime() {
+  bash "${SCRIPT_DIR}/utils/ssh-bootstrap.sh" runtime
 }
 
 # When initializeCommand + runArgs inject secrets via .env.development, remove the file
