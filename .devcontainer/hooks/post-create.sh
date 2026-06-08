@@ -1,10 +1,12 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEVCONTAINER_DIR="$(cd "${HOOKS_DIR}/.." && pwd)"
 
 main() {
   configure_local_git
+  install_openssh_server
   install_apm
   # install_opencode_cli
   install_1password_cli
@@ -27,6 +29,10 @@ install_apm() {
 
 install_opencode_cli() {
   curl -fsSL https://opencode.ai/install | bash
+}
+
+install_openssh_server() {
+  bash "${DEVCONTAINER_DIR}/utils/ssh-bootstrap.sh" install
 }
 
 install_snyk_cli() {
@@ -53,7 +59,7 @@ install_1password_cli() {
 }
 
 run_deps_install() {
-  bash "${SCRIPT_DIR}/utils/deps-install.sh"
+  bash "${DEVCONTAINER_DIR}/utils/deps-install.sh"
 }
 
 main "$@"
