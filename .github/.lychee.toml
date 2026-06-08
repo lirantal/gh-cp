@@ -3,4 +3,8 @@ exclude = [
   # npmjs.com returns 403 Forbidden to automated link checkers
   "https://www.npmjs.com/.*",
   "https://www.npmjs.org/.*",
+  # github.com intermittently returns 504 for these pages in CI
+  "https://github.com/lirantal$",
+  "https://github.com/lirantal/gh-cp/actions/workflows/ci.yml$",
+  "https://github.com/lirantal/gh-cp/actions/workflows/ci.yml/badge.svg\\?branch=main$",
 ]
