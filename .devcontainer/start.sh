@@ -103,6 +103,15 @@ die() {
   exit 1
 }
 
+devcontainer_cli() {
+  local npm_prefix
+
+  npm_prefix="${DEVCONTAINER_CLI_NPM_PREFIX:-${XDG_CACHE_HOME:-${HOME:-/tmp}/.cache}/devcontainer-cli-npm-prefix}"
+  mkdir -p "$npm_prefix"
+
+  npm --prefix "$npm_prefix" exec --yes -- "@devcontainers/cli@${CLI_VERSION}" "$@"
+}
+
 # Container-side TCP port published via runArgs, e.g. "127.0.0.1::3000" (Docker -p host::ctr).
 publish_container_port_from_devcontainer_json() {
   local f="$SCRIPT_DIR/devcontainer.json"
@@ -171,11 +180,11 @@ start_devcontainer() {
   fi
 
   if [ "$MODE" = "ssh-proxy" ]; then
-    if ! up_output="$(npx --yes "@devcontainers/cli@${CLI_VERSION}" up "${up_args[@]}" </dev/null 2>&1)"; then
+    if ! up_output="$(devcontainer_cli up "${up_args[@]}" </dev/null 2>&1)"; then
       [ -z "$up_output" ] || log "$up_output"
       return 1
     fi
-  elif ! up_output="$(npx --yes "@devcontainers/cli@${CLI_VERSION}" up "${up_args[@]}" 2>&1)"; then
+  elif ! up_output="$(devcontainer_cli up "${up_args[@]}" 2>&1)"; then
     [ -z "$up_output" ] || log "$up_output"
     return 1
   fi
@@ -218,18 +227,18 @@ refresh_container_gh_auth() {
     return 0
   fi
 
-  if ! printf '%s\n' "$token" | npx --yes "@devcontainers/cli@${CLI_VERSION}" exec \
+  if ! printf '%s\n' "$token" | devcontainer_cli exec \
     --workspace-folder "$WORKSPACE_FOLDER" \
     -- gh auth login --hostname github.com --git-protocol https --with-token --insecure-storage >/dev/null 2>&1; then
     log "Warning: could not refresh GitHub CLI auth inside the devcontainer."
     return 0
   fi
 
-  npx --yes "@devcontainers/cli@${CLI_VERSION}" exec \
+  devcontainer_cli exec \
     --workspace-folder "$WORKSPACE_FOLDER" \
     -- bash -lc 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git config --local credential.https://github.com.helper "!gh auth git-credential"; fi' >/dev/null 2>&1 || true
 
-  if npx --yes "@devcontainers/cli@${CLI_VERSION}" exec \
+  if devcontainer_cli exec \
     --workspace-folder "$WORKSPACE_FOLDER" \
     -- gh auth status --hostname github.com >/dev/null 2>&1; then
     log "GitHub CLI auth refreshed inside the devcontainer."
@@ -279,11 +288,11 @@ open_shell() {
   if ! infocmp "${TERM:-xterm-256color}" &>/dev/null 2>&1; then
     TERM=xterm-256color
   fi
-  TERM="${TERM:-xterm-256color}" npx --yes "@devcontainers/cli@${CLI_VERSION}" exec --workspace-folder "$WORKSPACE_FOLDER" -- env TERM="${TERM:-xterm-256color}" COLORTERM=truecolor bash
+  TERM="${TERM:-xterm-256color}" devcontainer_cli exec --workspace-folder "$WORKSPACE_FOLDER" -- env TERM="${TERM:-xterm-256color}" COLORTERM=truecolor bash
 }
 
 ensure_container_sshd_runtime() {
-  npx --yes "@devcontainers/cli@${CLI_VERSION}" exec --workspace-folder "$WORKSPACE_FOLDER" -- bash .devcontainer/utils/ssh-bootstrap.sh runtime </dev/null >&2
+  devcontainer_cli exec --workspace-folder "$WORKSPACE_FOLDER" -- bash .devcontainer/utils/ssh-bootstrap.sh runtime </dev/null >&2
 }
 
 run_ssh_proxy() {
