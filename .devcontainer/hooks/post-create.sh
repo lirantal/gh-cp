@@ -20,6 +20,7 @@ configure_local_git() {
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     git config --local commit.gpgsign false
     git config --local core.pager 'less -R'
+    git config --local credential.https://github.com.helper '!gh auth git-credential'
   fi
 }
 

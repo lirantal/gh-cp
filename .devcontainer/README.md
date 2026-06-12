@@ -41,6 +41,44 @@ bash .devcontainer/start.sh
 
 Requires Docker running. Uses `npx @devcontainers/cli` to `up` the workspace, then `exec` into `bash`.
 
+### GitHub CLI auth from host `gh`
+
+If your host machine is already authenticated with the GitHub CLI, refresh the container's
+GitHub CLI auth from the host token:
+
+```bash
+bash .devcontainer/start.sh --refresh-gh-token
+```
+
+This starts or reuses the dev container, reads the host token with:
+
+```bash
+gh auth token
+```
+
+and stores it using the container's own `gh auth login --with-token` flow. After that,
+`gh` commands inside the container can use the normal GitHub CLI auth store without
+sourcing an environment file:
+
+```bash
+gh auth status
+gh pr status
+```
+
+The refresh also configures this repository's Git credentials so HTTPS GitHub remotes
+can ask `gh` for credentials during `git fetch`, `git pull`, and `git push`.
+
+If the container is already running and you only want to refresh its GitHub auth:
+
+```bash
+bash .devcontainer/start.sh --refresh-gh-token-running
+```
+
+The refresh is intentionally non-interactive. It does not start a browser login or ask
+for a device code. If host `gh` is missing, logged out, or cannot return a token, the
+refresh is skipped so container startup is not blocked. Run `gh auth login` on the host
+first when you need to repair host GitHub auth.
+
 ### Portless SSH alias
 
 From the **repository root** on your host, install or update the SSH alias:
@@ -99,6 +137,8 @@ Use the generated host alias when configuring the agent:
 - `bash .devcontainer/start.sh` starts or reuses the devcontainer and opens an interactive shell. Use this for a local terminal session.
 - `bash .devcontainer/start.sh --install-ssh-config` installs or refreshes the host SSH alias and exits.
 - `bash .devcontainer/start.sh --ssh-proxy` refreshes the SSH alias, starts or reuses the devcontainer, and then bridges SSH over `docker exec`. Do not keep this running manually in a terminal; it is meant to be launched by OpenSSH as the `ProxyCommand` in the generated SSH config.
+- `bash .devcontainer/start.sh --refresh-gh-token` starts or reuses the devcontainer, then refreshes container `gh` auth from host `gh` when a token is available.
+- `bash .devcontainer/start.sh --refresh-gh-token-running` refreshes container `gh` auth from host `gh` only when the devcontainer is already running.
 
 If the devcontainer does not exist yet, the first SSH connection through `<repo-name>-devcontainer` will create it with `@devcontainers/cli up`, including `initializeCommand`, features, mounts, `postCreateCommand`, and `postStartCommand`. The first connection may take longer while the container is created.
 
