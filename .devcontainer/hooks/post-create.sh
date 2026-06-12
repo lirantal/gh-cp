@@ -8,6 +8,7 @@ main() {
   configure_local_git
   install_openssh_server
   install_apm
+  install_codex_cli
   # install_opencode_cli
   install_1password_cli
   install_snyk_cli
@@ -25,6 +26,10 @@ configure_local_git() {
 install_apm() {
   # Agent Package Manager: https://github.com/microsoft/apm
   curl -sSL https://aka.ms/apm-unix | sh
+}
+
+install_codex_cli() {
+  curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
 }
 
 install_opencode_cli() {
