@@ -18,6 +18,12 @@
 #   --ssh-proxy Start/reuse the dev container and proxy SSH over docker exec.
 #   --install-ssh-config
 #               Install/update the host SSH config alias and exit.
+#   --refresh-gh-token
+#               Start/reuse the dev container, then refresh container GitHub CLI
+#               auth from the host gh token when available.
+#   --refresh-gh-token-running
+#               Refresh container GitHub CLI auth from the host gh token, but only
+#               when the dev container is already running.
 #   --recreate  Remove the existing dev container for this workspace before `up`, so
 #               changes to runArgs (or other create-time settings) take effect.
 #   --help, -h  Print usage and exit.
@@ -26,6 +32,8 @@
 #   .devcontainer/start.sh
 #   .devcontainer/start.sh --install-ssh-config
 #   .devcontainer/start.sh --ssh-proxy
+#   .devcontainer/start.sh --refresh-gh-token
+#   .devcontainer/start.sh --refresh-gh-token-running
 #   .devcontainer/start.sh --recreate
 #
 
@@ -60,6 +68,12 @@ Options:
                 Intended for SSH ProxyCommand; stdout is reserved for SSH traffic.
   --install-ssh-config
                 Install/update the host SSH config alias and exit.
+  --refresh-gh-token
+                Start/reuse the dev container, then refresh container GitHub CLI
+                auth from the host gh token when available.
+  --refresh-gh-token-running
+                Refresh container GitHub CLI auth from the host gh token, but only
+                when the dev container is already running.
   --recreate    Remove the existing dev container for this workspace before starting,
                 so Docker picks up new settings (e.g. runArgs / port mappings).
   --help, -h    Show this help and exit.
@@ -70,6 +84,9 @@ Notes:
 
   The --ssh-proxy mode uses a repo-local identity at:
     $SSH_KEY_PATH
+
+  The GitHub token refresh modes never start a host gh login flow. If host gh is
+  missing, logged out, or cannot provide a token, refresh is skipped.
 EOF
 }
 
@@ -175,6 +192,66 @@ start_devcontainer() {
   fi
 }
 
+host_gh_token_or_empty() {
+  local token
+
+  if ! command -v gh >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! token="$(gh auth token 2>/dev/null)"; then
+    return 0
+  fi
+
+  if [ -z "$token" ]; then
+    return 0
+  fi
+
+  printf '%s\n' "$token"
+}
+
+refresh_container_gh_auth() {
+  local token
+
+  token="$(host_gh_token_or_empty)"
+  if [ -z "$token" ]; then
+    return 0
+  fi
+
+  if ! printf '%s\n' "$token" | npx --yes "@devcontainers/cli@${CLI_VERSION}" exec \
+    --workspace-folder "$WORKSPACE_FOLDER" \
+    -- gh auth login --hostname github.com --git-protocol https --with-token --insecure-storage >/dev/null 2>&1; then
+    log "Warning: could not refresh GitHub CLI auth inside the devcontainer."
+    return 0
+  fi
+
+  npx --yes "@devcontainers/cli@${CLI_VERSION}" exec \
+    --workspace-folder "$WORKSPACE_FOLDER" \
+    -- bash -lc 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git config --local credential.https://github.com.helper "!gh auth git-credential"; fi' >/dev/null 2>&1 || true
+
+  if npx --yes "@devcontainers/cli@${CLI_VERSION}" exec \
+    --workspace-folder "$WORKSPACE_FOLDER" \
+    -- gh auth status --hostname github.com >/dev/null 2>&1; then
+    log "GitHub CLI auth refreshed inside the devcontainer."
+  else
+    log "Warning: GitHub CLI auth refresh completed, but verification failed."
+  fi
+}
+
+run_refresh_gh_token() {
+  start_devcontainer
+  refresh_container_gh_auth
+}
+
+run_refresh_gh_token_running() {
+  CONTAINER_ID="$(find_running_container_id)"
+  if [ -z "$CONTAINER_ID" ]; then
+    die "No running devcontainer found for: $WORKSPACE_FOLDER"
+  fi
+
+  refresh_container_gh_auth
+}
+
 print_port_hint() {
   local container_port
   local host_binding
@@ -249,6 +326,14 @@ while [ $# -gt 0 ]; do
       MODE="install-ssh-config"
       shift
       ;;
+    --refresh-gh-token)
+      MODE="refresh-gh-token"
+      shift
+      ;;
+    --refresh-gh-token-running)
+      MODE="refresh-gh-token-running"
+      shift
+      ;;
     --recreate)
       RECREATE=true
       shift
@@ -270,5 +355,11 @@ case "$MODE" in
     ;;
   install-ssh-config)
     install_ssh_config_alias
+    ;;
+  refresh-gh-token)
+    run_refresh_gh_token
+    ;;
+  refresh-gh-token-running)
+    run_refresh_gh_token_running
     ;;
 esac
