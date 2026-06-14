@@ -1,5 +1,13 @@
 # gh-cp
 
+## 1.3.1
+
+### Patch Changes
+
+- [#42](https://github.com/lirantal/gh-cp/pull/42) [`06d15b9`](https://github.com/lirantal/gh-cp/commit/06d15b92846d0b63f5e7b8dc4fd94088005c4378) Thanks [@lirantal](https://github.com/lirantal)! - Preserve executable file permissions when copying files from GitHub repositories.
+
+- [#41](https://github.com/lirantal/gh-cp/pull/41) [`e7a3919`](https://github.com/lirantal/gh-cp/commit/e7a3919a24b52f7cf98e828c68298132d07f7a09) Thanks [@lirantal](https://github.com/lirantal)! - Add `gh-cp alias list` and clarify alias/install help text.
+
 ## 1.3.0
 
 ### Minor Changes
