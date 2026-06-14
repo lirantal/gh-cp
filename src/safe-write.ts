@@ -1,4 +1,4 @@
-import { mkdir, stat, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Logger } from './logger.ts'
 
@@ -21,6 +21,7 @@ export function assertSafeUnderDest (destRoot: string, relativePath: string): st
 export interface WritePlan {
   relativePath: string
   content: Buffer
+  mode?: number
 }
 
 export async function applyWritePlan (
@@ -58,6 +59,9 @@ export async function applyWritePlan (
     }
 
     await writeFile(abs, plan.content)
+    if (plan.mode !== undefined) {
+      await chmod(abs, plan.mode)
+    }
     written.push(plan.relativePath)
   }
 
