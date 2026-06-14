@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { loadAliases, setAlias } from '../aliases-store.ts'
+import { formatAliasList, toAliasListItems } from '../alias-list-output.ts'
 import {
   parseArgv,
   resolveCliCommand,
@@ -19,10 +20,17 @@ const HELP = `gh-cp — copy files or directories from a GitHub repository
 Usage:
   gh-cp [options] <owner/repo[/path][#ref]> [destination]
   gh-cp alias <alias-name> <owner/repo[/path][#ref]>
+  gh-cp alias list
   gh-cp install [alias-name] [destination]
 
 The destination defaults to the current directory. Use --path to override the
 optional second positional argument.
+
+Commands:
+  <source> [destination]       Copy a GitHub repo, directory, or file to a destination
+  alias <alias-name> <source>  Save a reusable source shortcut
+  alias list                   List saved aliases
+  install [alias-name]         Copy from a saved alias; omit alias-name to choose interactively
 
 Examples:
   gh-cp lirantal/npq/.devcontainer .
@@ -31,6 +39,7 @@ Examples:
   gh-cp lirantal/npq#main
   gh-cp lirantal/npq --ref v1.0.0
   gh-cp alias devcontainer github.com/lirantal/create-node-lib/tree/main/template/.devcontainer/
+  gh-cp alias list
   gh-cp install devcontainer .
   gh-cp install
 
@@ -40,7 +49,7 @@ Options:
   -v, --verbose    Log strategy and progress to stderr
   -f, --force      Overwrite existing files
       --dry-run    Show what would be written without writing
-      --json       Print a JSON summary to stdout on success
+      --json       Print a JSON summary or alias listing to stdout
       --path DIR   Output directory (overrides destination positional)
       --ref REF    Branch, tag, or SHA (overrides #ref in the source spec)
 
@@ -125,6 +134,19 @@ async function main (): Promise<void> {
       process.stdout.write(
         `saved alias "${command.aliasName}" -> ${command.sourceSpec}\n`
       )
+      process.exitCode = 0
+      return
+    }
+
+    if (command.command === 'alias-list') {
+      const aliases = await loadAliases()
+      if (command.json) {
+        process.stdout.write(
+          `${JSON.stringify({ aliases: toAliasListItems(aliases) })}\n`
+        )
+      } else {
+        process.stdout.write(formatAliasList(aliases))
+      }
       process.exitCode = 0
       return
     }

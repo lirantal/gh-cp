@@ -109,6 +109,11 @@ export interface ResolvedAliasCommand {
   sourceSpec: string
 }
 
+export interface ResolvedAliasListCommand {
+  command: 'alias-list'
+  json: boolean
+}
+
 export interface ResolvedInstallCommand {
   command: 'install'
   aliasName: string | undefined
@@ -126,6 +131,7 @@ export interface ResolvedCopyCommand extends ResolvedCliInput {
 
 export type ResolvedCliCommand =
   | ResolvedAliasCommand
+  | ResolvedAliasListCommand
   | ResolvedInstallCommand
   | ResolvedCopyCommand
 
@@ -177,7 +183,25 @@ export function resolveCliCommand (parsed: ParsedArgv): ResolvedCliCommand {
 
   if (command === 'alias') {
     if (firstArg === undefined || firstArg.length === 0) {
-      throw new Error('Missing alias name: expected gh-cp alias <alias-name> <source>')
+      throw new Error('Missing alias name: expected gh-cp alias <alias-name> <source> or gh-cp alias list')
+    }
+    if (firstArg === 'list' && secondArg === undefined && extra.length === 0) {
+      if (
+        parsed.pathFlag !== undefined ||
+        parsed.refFlag !== undefined ||
+        parsed.force ||
+        parsed.dryRun
+      ) {
+        throw new Error('Copy flags are not supported with the alias list command')
+      }
+
+      return {
+        command: 'alias-list',
+        json: parsed.json
+      }
+    }
+    if (parsed.json) {
+      throw new Error('Copy flags are not supported with the alias command')
     }
     if (secondArg === undefined || secondArg.length === 0) {
       throw new Error('Missing alias source: expected gh-cp alias <alias-name> <source>')
@@ -189,8 +213,7 @@ export function resolveCliCommand (parsed: ParsedArgv): ResolvedCliCommand {
       parsed.pathFlag !== undefined ||
       parsed.refFlag !== undefined ||
       parsed.force ||
-      parsed.dryRun ||
-      parsed.json
+      parsed.dryRun
     ) {
       throw new Error('Copy flags are not supported with the alias command')
     }

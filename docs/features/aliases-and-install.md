@@ -14,6 +14,15 @@ The source uses the same syntax as normal `gh-cp` sources, including `owner/repo
 
 Saving an existing alias name updates it.
 
+## List aliases
+
+```sh
+gh-cp alias list
+gh-cp alias list --json
+```
+
+`alias list` prints saved aliases in name order. Use `--json` when scripting.
+
 ## Install from an alias
 
 ```sh

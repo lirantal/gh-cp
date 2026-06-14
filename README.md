@@ -59,6 +59,7 @@ npx gh-cp cli/cli/README.md --json .
 
 # Save a reusable source and install from it later
 npx gh-cp alias devcontainer github.com/lirantal/create-node-lib/tree/main/template/.devcontainer/
+npx gh-cp alias list
 npx gh-cp install devcontainer .
 npx gh-cp install
 ```
@@ -76,7 +77,7 @@ On success, gh-cp prints a short **stdout** summary (for example `✔︎ copied 
 | `--ref REF` | Branch, tag, or SHA (overrides `#ref` in the source spec) |
 | `-f`, `--force` | Overwrite existing files |
 | `--dry-run` | Show planned writes without writing |
-| `--json` | Print JSON summary on success (no human success line on stdout) |
+| `--json` | Print JSON output for copy summaries and alias listings |
 
 Source syntax: `owner/repo[/path][#ref]` (also supports GitHub web path forms like `owner/repo/blob/ref/path`). Details: [docs/features/source-spec.md](./docs/features/source-spec.md).
 
@@ -86,6 +87,12 @@ Save frequently used sources as aliases:
 
 ```sh
 npx gh-cp alias devcontainer github.com/lirantal/create-node-lib/tree/main/template/.devcontainer/
+```
+
+List saved aliases:
+
+```sh
+npx gh-cp alias list
 ```
 
 Install directly from an alias:
