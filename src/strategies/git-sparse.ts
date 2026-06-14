@@ -17,6 +17,10 @@ function looksLikeSha (ref: string): boolean {
   return /^[0-9a-f]{7,40}$/i.test(ref)
 }
 
+function fileModeFromStat (mode: number): number {
+  return (mode & 0o111) !== 0 ? 0o755 : 0o644
+}
+
 async function collectFilesRecursive (
   absDir: string,
   baseRel: string,
@@ -172,7 +176,7 @@ export async function copyViaGitSparse (opts: {
     if (st.isFile()) {
       const buf = await readFile(sourceFsRoot)
       const rel = destRelativeFromRepoPath(opts.repoPath, opts.repoPath)
-      plans.push({ relativePath: rel, content: buf })
+      plans.push({ relativePath: rel, content: buf, mode: fileModeFromStat(st.mode) })
       return okPlans(plans)
     }
 
@@ -190,7 +194,8 @@ export async function copyViaGitSparse (opts: {
           : `${opts.repoPath.replace(/\/+$/, '')}/${f.relPosix}`
       const rel = destRelativeFromRepoPath(fullRepoPath, opts.repoPath)
       const buf = await readFile(f.abs)
-      plans.push({ relativePath: rel, content: buf })
+      const st = await stat(f.abs)
+      plans.push({ relativePath: rel, content: buf, mode: fileModeFromStat(st.mode) })
     }
 
     return okPlans(plans)

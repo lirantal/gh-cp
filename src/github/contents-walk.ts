@@ -14,6 +14,39 @@ export interface ContentDirEntry {
   encoding?: string
 }
 
+export function gitFileModeToFsMode (mode: string): number | undefined {
+  if (mode === '100755') {
+    return 0o755
+  }
+  if (mode === '100644') {
+    return 0o644
+  }
+  return undefined
+}
+
+export function treeFileModesFromResponse (data: unknown): Map<string, number> {
+  const modes = new Map<string, number>()
+  if (!isRecord(data) || !Array.isArray(data.tree)) {
+    return modes
+  }
+  for (const entry of data.tree) {
+    if (!isRecord(entry)) {
+      continue
+    }
+    if (entry.type !== 'blob') {
+      continue
+    }
+    if (typeof entry.path !== 'string' || typeof entry.mode !== 'string') {
+      continue
+    }
+    const mode = gitFileModeToFsMode(entry.mode)
+    if (mode !== undefined) {
+      modes.set(entry.path, mode)
+    }
+  }
+  return modes
+}
+
 function isRecord (v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null
 }
@@ -44,6 +77,21 @@ function buildContentsApiPath (
   return `${base}${suffix}${q}`
 }
 
+function buildGitTreeApiPath (
+  owner: string,
+  repo: string,
+  ref: string
+): string {
+  return `repos/${owner}/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`
+}
+
+function defaultBranchFromRepoResponse (data: unknown): string | undefined {
+  if (!isRecord(data)) {
+    return undefined
+  }
+  return typeof data.default_branch === 'string' ? data.default_branch : undefined
+}
+
 export interface ContentsWalkDeps {
   owner: string
   repo: string
@@ -57,6 +105,23 @@ export interface ContentsWalkDeps {
 export async function walkGithubContents (deps: ContentsWalkDeps): Promise<WritePlan[]> {
   const plans: WritePlan[] = []
   const rootPath = deps.sourceRootInRepo
+  let fileModesPromise: Promise<Map<string, number>> | undefined
+
+  async function fileModes (): Promise<Map<string, number>> {
+    fileModesPromise ??= (async () => {
+      let treeRef = deps.ref
+      if (treeRef === undefined || treeRef.length === 0) {
+        const repoData = await deps.getJson(`repos/${deps.owner}/${deps.repo}`)
+        treeRef = defaultBranchFromRepoResponse(repoData)
+      }
+      if (treeRef === undefined || treeRef.length === 0) {
+        return new Map()
+      }
+      const data = await deps.getJson(buildGitTreeApiPath(deps.owner, deps.repo, treeRef))
+      return treeFileModesFromResponse(data)
+    })()
+    return await fileModesPromise
+  }
 
   async function visit (pathInRepo: string): Promise<void> {
     const apiPath = buildContentsApiPath(deps.owner, deps.repo, pathInRepo, deps.ref)
@@ -106,7 +171,8 @@ export async function walkGithubContents (deps: ContentsWalkDeps): Promise<Write
       const fileApi = buildContentsApiPath(deps.owner, deps.repo, filePathInRepo, deps.ref)
       buf = await deps.getFileBuffer(fileApi)
     }
-    plans.push({ relativePath: rel, content: buf })
+    const modes = await fileModes()
+    plans.push({ relativePath: rel, content: buf, mode: modes.get(filePathInRepo) })
   }
 
   await visit(rootPath)
