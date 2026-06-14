@@ -60,6 +60,45 @@ describe('parseArgv', () => {
     )
   })
 
+  test('resolves alias list command', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'alias',
+      'list'
+    ]))
+
+    assert.strictEqual(command.command, 'alias-list')
+    assert.strictEqual(command.json, false)
+  })
+
+  test('resolves alias list command with json output', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'alias',
+      'list',
+      '--json'
+    ]))
+
+    assert.strictEqual(command.command, 'alias-list')
+    assert.strictEqual(command.json, true)
+  })
+
+  test('still allows list as an alias name when a source is provided', () => {
+    const command = resolveCliCommand(parseArgv([
+      'node',
+      'cli',
+      'alias',
+      'list',
+      'o/r'
+    ]))
+
+    assert.strictEqual(command.command, 'alias')
+    assert.strictEqual(command.aliasName, 'list')
+    assert.strictEqual(command.sourceSpec, 'o/r')
+  })
+
   test('resolves install command with destination', () => {
     const command = resolveCliCommand(parseArgv([
       'node',
@@ -115,6 +154,19 @@ describe('parseArgv', () => {
         'dev',
         'o/r',
         '--json'
+      ])),
+      /Copy flags are not supported/
+    )
+  })
+
+  test('rejects copy flags on alias list command', () => {
+    assert.throws(
+      () => resolveCliCommand(parseArgv([
+        'node',
+        'cli',
+        'alias',
+        'list',
+        '--force'
       ])),
       /Copy flags are not supported/
     )
