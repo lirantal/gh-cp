@@ -1,6 +1,9 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
-import { walkGithubContents } from '../src/github/contents-walk.ts'
+import {
+  treeFileModesFromResponse,
+  walkGithubContents
+} from '../src/github/contents-walk.ts'
 import { createLogger } from '../src/logger.ts'
 
 describe('walkGithubContents', () => {
@@ -61,5 +64,16 @@ describe('walkGithubContents', () => {
       jsonCalls.filter((call) => call.includes('/git/trees/')).length,
       1
     )
+  })
+
+  test('ignores truncated Git tree responses', () => {
+    const modes = treeFileModesFromResponse({
+      truncated: true,
+      tree: [
+        { type: 'blob', path: 'scripts/run.sh', mode: '100755' }
+      ]
+    })
+
+    assert.strictEqual(modes.size, 0)
   })
 })

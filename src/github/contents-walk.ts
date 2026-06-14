@@ -26,7 +26,7 @@ export function gitFileModeToFsMode (mode: string): number | undefined {
 
 export function treeFileModesFromResponse (data: unknown): Map<string, number> {
   const modes = new Map<string, number>()
-  if (!isRecord(data) || !Array.isArray(data.tree)) {
+  if (!isRecord(data) || data.truncated === true || !Array.isArray(data.tree)) {
     return modes
   }
   for (const entry of data.tree) {
