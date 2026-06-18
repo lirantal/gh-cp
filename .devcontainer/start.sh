@@ -105,11 +105,27 @@ die() {
 
 devcontainer_cli() {
   local npm_prefix
+  local cli_bin
+  local version_file
 
   npm_prefix="${DEVCONTAINER_CLI_NPM_PREFIX:-${XDG_CACHE_HOME:-${HOME:-/tmp}/.cache}/devcontainer-cli-npm-prefix}"
+  cli_bin="${npm_prefix}/node_modules/.bin/devcontainer"
+  version_file="${npm_prefix}/.devcontainer-cli-version"
+
   mkdir -p "$npm_prefix"
 
-  npm --prefix "$npm_prefix" exec --yes -- "@devcontainers/cli@${CLI_VERSION}" "$@"
+  if [ ! -x "$cli_bin" ] || [ "$(cat "$version_file" 2>/dev/null || true)" != "$CLI_VERSION" ]; then
+    npm --prefix "$npm_prefix" install \
+      --no-audit \
+      --no-fund \
+      --no-save \
+      --package-lock=false \
+      "@devcontainers/cli@${CLI_VERSION}" >/dev/null
+
+    printf '%s\n' "$CLI_VERSION" > "$version_file"
+  fi
+
+  "$cli_bin" "$@"
 }
 
 # Container-side TCP port published via runArgs, e.g. "127.0.0.1::3000" (Docker -p host::ctr).

@@ -39,7 +39,7 @@ From the **repository root** on your host:
 bash .devcontainer/start.sh
 ```
 
-Requires Docker running. Uses the pinned `@devcontainers/cli` through an isolated npm prefix to `up` the workspace, then `exec` into `bash`.
+Requires Docker running. Caches the pinned `@devcontainers/cli` in an isolated npm prefix, then uses that binary to `up` the workspace and `exec` into `bash`.
 
 ### GitHub CLI auth from host `gh`
 
