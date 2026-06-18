@@ -9,6 +9,7 @@ WORKSPACE_FOLDER="$(cd "${SCRIPT_DIR}/../.." && pwd -P)"
 REPO_NAME="$(basename "${WORKSPACE_FOLDER}")"
 SSH_USER="${DEVCONTAINER_SSH_USER:-node}"
 PUBLIC_KEY_FILE="${DEVCONTAINER_SSH_PUBLIC_KEY_FILE:-${WORKSPACE_FOLDER}/.devcontainer/.ssh/id_ed25519.pub}"
+OPENSSH_CONFIGURE_TIMEOUT_SECONDS="${DEVCONTAINER_OPENSSH_CONFIGURE_TIMEOUT_SECONDS:-180}"
 
 as_root() {
   if [ "$(id -u)" -eq 0 ]; then
@@ -22,13 +23,86 @@ ssh_user_home() {
   getent passwd "${SSH_USER}" | cut -d: -f6
 }
 
-install_openssh_server() {
-  if [ -x /usr/sbin/sshd ]; then
+openssh_server_package_configured() {
+  local status
+
+  if ! command -v dpkg-query >/dev/null 2>&1; then
     return 0
   fi
 
-  as_root apt-get update
-  as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends openssh-server
+  status="$(dpkg-query -W -f='${Status}' openssh-server 2>/dev/null || true)"
+  [ "${status}" = "install ok installed" ]
+}
+
+openssh_server_configured() {
+  [ -x /usr/sbin/sshd ] || return 1
+  getent passwd sshd >/dev/null 2>&1 || return 1
+  openssh_server_package_configured
+}
+
+package_manager_running() {
+  if command -v pgrep >/dev/null 2>&1; then
+    pgrep -x apt >/dev/null 2>&1 ||
+      pgrep -x apt-get >/dev/null 2>&1 ||
+      pgrep -x dpkg >/dev/null 2>&1
+    return $?
+  fi
+
+  ps -eo comm= | grep -Eq '^(apt|apt-get|dpkg)$'
+}
+
+configure_pending_dpkg_packages() {
+  if ! command -v dpkg >/dev/null 2>&1; then
+    return 1
+  fi
+
+  # Feed "no" answers so a recovering openssh-server postinst cannot block if
+  # another path already generated host keys before dpkg completed.
+  printf 'n\nn\nn\nn\nn\n' |
+    as_root env DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+}
+
+ensure_openssh_server_configured() {
+  local deadline
+
+  if openssh_server_configured; then
+    return 0
+  fi
+
+  echo "ssh-bootstrap: waiting for openssh-server package configuration before generating SSH host keys." >&2
+  deadline=$((SECONDS + OPENSSH_CONFIGURE_TIMEOUT_SECONDS))
+
+  while ! openssh_server_configured; do
+    if ! package_manager_running; then
+      configure_pending_dpkg_packages || true
+    fi
+
+    if openssh_server_configured; then
+      return 0
+    fi
+
+    if [ "${SECONDS}" -ge "${deadline}" ]; then
+      echo "ssh-bootstrap: openssh-server did not finish configuring within ${OPENSSH_CONFIGURE_TIMEOUT_SECONDS}s." >&2
+      if command -v dpkg-query >/dev/null 2>&1; then
+        dpkg-query -W -f='ssh-bootstrap: openssh-server status: ${Status}\n' openssh-server >&2 || true
+      fi
+      if ! getent passwd sshd >/dev/null 2>&1; then
+        echo "ssh-bootstrap: missing sshd privilege separation user." >&2
+      fi
+      return 1
+    fi
+
+    sleep 2
+  done
+}
+
+install_openssh_server() {
+  if [ ! -x /usr/sbin/sshd ]; then
+    as_root apt-get update
+    as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends openssh-server
+  fi
+
+  ensure_openssh_server_configured
 }
 
 install_authorized_key_if_present() {
@@ -90,6 +164,7 @@ ensure_runtime_ready() {
     return 1
   fi
 
+  ensure_openssh_server_configured
   as_root ssh-keygen -A
   as_root install -d -m 0755 /run/sshd
   install_authorized_key_if_present
