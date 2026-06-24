@@ -34,3 +34,10 @@ Use gh-cp when you want to vendor a config folder, workflow, or template from an
 ## Project README
 
 The repository [README](../README.md) covers install, requirements, and basic examples.
+
+## Project context
+
+- [Development](./development.md) - local setup, workflows, and useful commands.
+- [Testing](./testing.md) - test commands, test organization, and verification expectations.
+- [Architecture](./architecture.md) - repository structure, package boundaries, and important flows.
+- [Conventions](./conventions.md) - coding, documentation, and maintenance conventions.
