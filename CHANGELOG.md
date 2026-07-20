@@ -1,5 +1,13 @@
 # gh-cp
 
+## 1.3.2
+
+### Patch Changes
+
+- [#47](https://github.com/lirantal/gh-cp/pull/47) [`ad0e04b`](https://github.com/lirantal/gh-cp/commit/ad0e04b7442fb952eb314c9c4201b9b7a42cc517) Thanks [@lirantal](https://github.com/lirantal)! - Cache the pinned Dev Containers CLI binary so devcontainer shell and SSH attaches do not run through npm on every startup.
+
+- [#45](https://github.com/lirantal/gh-cp/pull/45) [`2b1dbe1`](https://github.com/lirantal/gh-cp/commit/2b1dbe1ed7da373c376b6c5c106d943cd42ef741) Thanks [@lirantal](https://github.com/lirantal)! - Prevent the devcontainer SSH bootstrap from racing OpenSSH package configuration when the portless SSH proxy starts before post-create has finished.
+
 ## 1.3.1
 
 ### Patch Changes
